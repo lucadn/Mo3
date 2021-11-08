@@ -1,2 +1,2 @@
-# MoMo
-MoMo: a Modular Mobility model for future generation wireless networks
+# (Mo)3
+(Mo)3: a Modular Mobility Model for future generation wireless networks

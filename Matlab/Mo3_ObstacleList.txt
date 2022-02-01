@@ -1,0 +1,24 @@
+%Example of obstacle definition file, used by the Obstacle Avoidance module of the 
+%Mo3 model, as defined in:
+%L. De Nardis and M.-G. Di Benedetto, "Mo3: a Modular Mobility Model for
+%future generation mobile wireless networks", submitted to IEEE Access
+%Syntax for rectangle "Obstacle" 1 <x_obs> <y_obs> <h_side> <v_side>
+%Syntax for ellipse "Obstacle" 2 <x_obs> <y_obs> <h_semiaxis> <v_semiaxis>
+%Smooth reflection on borders:
+%Obstacle 1 25 0.0005 50 0.001
+%Obstacle 1 25 49.9995 50 0.001
+%Obstacle 1 0.0005 25 0.001 50
+Obstacle 1 49.9995 25 0.001 50
+%Random obstacles:
+Obstacle 1 15 25 10 20
+Obstacle 1 15 15 10 15
+Obstacle 2 20 20 15 15
+%Spatial constraints example:
+%Obstacle 1 25 2.5 50 5
+%Obstacle 1 2.5 25 5 30
+%Obstacle 1 47.5 25 5 30
+%Obstacle 1 25 47.5 50 5
+%Obstacle 1 16.25 16.25 12.5 12.5
+%Obstacle 1 33.75 16.25 12.5 12.5
+%Obstacle 1 16.25 33.75 12.5 12.5
+%Obstacle 1 33.75 33.75 12.5 12.5

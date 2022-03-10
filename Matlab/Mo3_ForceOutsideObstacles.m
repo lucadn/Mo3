@@ -7,7 +7,7 @@ numObstacles=size(ObsList,1);
 numNodes=size(x,2);
 nodesInside=true(numObstacles,numNodes);
 %Keep randomly generating the positions of nodes within an obstacle until all of them fall outside. Note
-%that out of simplicity an ellipse is approximate as the smallest rectangle
+%that out of simplicity each ellipse is approximated by the smallest rectangle
 %containing it.
 while (any(nodesInside,'all'))
     for j=1:numObstacles

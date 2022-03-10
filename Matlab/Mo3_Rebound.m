@@ -1,4 +1,4 @@
-function [x, y, theta, xViolations, yViolations]=Mo3_Rebound(x, y, theta, minX,minY,maxX,maxY)
+function [x, y, z, theta, phi, xViolations, yViolations,zViolations]=Mo3_Rebound(x, y, z, theta, phi, minX,minY,minZ, maxX,maxY,maxZ)
 %Function implementing the perfect reflection rebound as part of the Individual Mobility module
 %of the Mo3 mobility model, as defined in
 %L. De Nardis and M.-G. Di Benedetto, "Mo3: a Modular Mobility model for
@@ -22,8 +22,19 @@ yViolationsMax=y > maxY;
 y(yViolationsMax)=maxY;
 theta(yViolationsMax)= -theta(yViolationsMax);
 
+zViolationsMin=z < minZ;
+z(zViolationsMin)=minZ;
+phi(zViolationsMin)= -phi(zViolationsMin);
+
+zViolationsMax=z > maxZ;
+z(zViolationsMax)=maxZ;
+phi(zViolationsMax)= -phi(zViolationsMax);
+
+
+
 xViolations=xViolationsMin|xViolationsMax;
 yViolations=yViolationsMin|yViolationsMax;
+zViolations=zViolationsMin|zViolationsMax;
 
 thetalow=find(theta<-pi);
 while ~isempty(thetalow)
@@ -36,13 +47,3 @@ while ~isempty(thetahigh)
     theta(thetahigh)=theta(thetahigh)-2*pi;
     thetahigh=find(theta>pi);
 end
-% if( y < minY)
-%     violation(2)=true;
-%     y = minY;
-%     theta = 6.28 - theta ;
-% end
-% if( y > maxY)
-%     violation(2)=true;
-%     y = maxY;
-%     theta = 6.28 - theta;
-% end

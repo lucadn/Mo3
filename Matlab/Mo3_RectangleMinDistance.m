@@ -5,13 +5,7 @@ function [detected]=Mo3_RectangleMinDistance(x0,y0,xobs0, yobs0,a,b,d_OA_trigger
 %future generation mobile wireless networks", submitted to IEEE Access
 
 [xmin, xmax, ymin, ymax]=Mo3_FindRectangleCorners(xobs0, yobs0,a,b);
-% d1=sqrt((x0-xmin)^2+(y0-ymin)^2);
-% d2=sqrt((x0-xmin)^2+(y0-ymax)^2);
-% d3=sqrt((x0-xmin)^2+(y0-ymax)^2);
-% d4=sqrt((x0-xmin)^2+(y0-ymax)^2);
-% d=[d1 d2 d3 d4];
-%
-%
+
 minDistance = Inf*ones(1,length(x0));
 
 BottomLeftNodes=(x0<=xmin) & (y0<=ymin);

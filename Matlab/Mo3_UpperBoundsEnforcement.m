@@ -1,9 +1,7 @@
-function [vOut, thetaOut] = Mo3_UpperBoundsEnforcement(vIn,thetaIn,v0,theta0,v_max, v_min,a_max, g_max,dt)
+function [vOut, thetaOut, phiOut] = Mo3_UpperBoundsEnforcement(vIn,thetaIn,phiIn,v0,theta0,phi0,v_max, v_min,a_max, g_max,d_max,dt)
 %Function implementing the Upper Bounds Enforcement module part of the Mo3 mobility model, as defined in
 %L. De Nardis and M.-G. Di Benedetto, "Mo3: a Modular Mobility Model for
 %future generation mobile wireless networks", submitted to IEEE Access
-
-% The Upper Bounds Enforcement module TBD.
 
 maxDeltav=a_max*dt;
 if maxDeltav>=(v_max-v_min)
@@ -58,3 +56,13 @@ else
     end
 end
 
+maxDeltaPhi=d_max*dt;
+if maxDeltaPhi>=pi
+    phiOut=phiIn;
+else
+    DeltaPhi=phiIn-phi0;
+    DeltaPhiSign=sign(DeltaPhi);
+    DeltaPhiViolations=find(abs(DeltaPhi)>d_max*dt);
+    DeltaPhi(DeltaPhiViolations)=DeltaPhiSign(DeltaPhiViolations)*a_max*dt;
+    phiOut=phi0+DeltaPhi;
+end

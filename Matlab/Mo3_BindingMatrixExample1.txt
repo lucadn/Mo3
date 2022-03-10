@@ -1,0 +1,28 @@
+%Example of binding matrix definition file, used by the Correlated Mobility module of the %Mo3 model, as defined in:
+%L. De Nardis and M.-G. Di Benedetto, "Mo3: a Modular Mobility Model for
+%future generation mobile wireless networks", submitted to IEEE Access
+%Switch between individual mobility and group mobility with a single group.
+%Add comment here
+1 1 1 1
+1 1 1 1
+1 1 1 1
+1 1 1 1
+%Add comment here
+nextSwitch 2000
+%Add comment here
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+nextSwitch 200
+%Add comment here
+1 1 1 1
+1 1 1 1
+1 1 1 1
+1 1 1 1
+nextSwitch 300
+%Add comment here
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1

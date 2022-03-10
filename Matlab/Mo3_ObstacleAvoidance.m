@@ -3,6 +3,28 @@ function [theta]=Mo3_ObstacleAvoidance(M,x,y,theta,ObsList,numObstacles,d_OA_tri
 %L. De Nardis and M.-G. Di Benedetto, "Mo3: a Modular Mobility model for
 %future generation mobile wireless networks", submitted to IEEE Access
 
+%IMPORTANT CAVEAT. As pointed out in the research paper, the enforcement of
+%upper bounds by the UpperBoundsEnforcement module may lead to a failure in avoiding a collision with another
+%node or with an obstacle. UpperBoundsEnforcement will cause Obstacle Avoidance failures in
+%particular under the following conditions:
+%1) d_OA_trigger set to small values (e.g. < 5 m): in this case a node only
+%reacts to an obstacle when it is very close to it, and the Obstacle
+%Avoidance rule may introduce a variation to theta too large compared to the
+%current bound on rotation speed. 
+%2) Activation of the Correlated Mobility rule: when a node needs to
+%reconnect to its group on the other side of an obstacle, the combination
+%of the Correlate Mobility and Obstacle Avoidance will lead to a pattern
+%that follows the perimeter of the obstacle. At times the
+%UpperBoundsEnforcement rule may enforce a correction on theta that
+%causes the node to collide with the obstacle.
+%
+%In the current implementation of the model, when a collision occurs, the
+%node will pass through the obstacle and eventually exit it. More sophisticated approaches to
+%address this event might include applying a modified version of the
+%rebound rule to immediately place the node outside the obstacle; their
+%implementation is left for future work.
+
+
 forbiddenRange=cell(M,2*numObstacles);
 for j=1:numObstacles
     thetarange=zeros(2,M);
@@ -38,42 +60,6 @@ for j=1:numObstacles
             forbiddenRange(k,2*(j-1)+2)={[0 0]};
         end
     end
-    %             if (nnz(splitForbiddenRangeNodes)>0)
-    %                 fprintf('Split\n');
-    %             end
-    %             if any(detected)
-    %                 fprintf('Obstacle detected\n');
-    %                 plotEverything(xStart,yStart,xPath,yPath,x_min, x_max, y_min, y_max,ObsList);
-    %                 y11=tan(thetamin)*(xtot-x)+y;
-    %                 plot(xtot,y11,'-');
-    %                 y12=tan(thetamax)*(xtot-x)+y;
-    %                 plot(xtot,y12,'-');
-    %                 if(abs(theta(k))<pi/2)
-    %                     xNode=x:0.1:x_max;
-    %                 else
-    %                     xNode=x_min:0.1:x;
-    %                 end
-    %                 dirNode=tan(theta(k))*(xNode-x)+y;
-    %                 plot(xNode,dirNode,'--')
-    %                 close
-    %             end
-%     if nnz(sqrt((x-ObsList(1,2)).^2+(y- ObsList(1,3)).^2)<1.2*ObsList(1,4)/2)>0
-%         plotEverything(xStart,yStart,xPath,yPath,x_min, x_max, y_min, y_max,ObsList);
-%         for dbInd=1:length(x)
-%             y11=tan(thetamin(dbInd)).*(xtot-x(dbInd))+y(dbInd);
-%             plot(xtot,y11,'-');
-%             y12=tan(thetamax(dbInd)).*(xtot-x(dbInd))+y(dbInd);
-%             plot(xtot,y12,'-');
-%             if(abs(theta(dbInd))<pi/2)
-%                 xNode=x:0.1:x_max;
-%             else
-%                 xNode=x_min:0.1:x;
-%             end
-%             dirNode=tan(theta(dbInd))*(xNode-x(dbInd))+y(dbInd);
-%             plot(xNode,dirNode,'--')
-%         end
-%         close
-%     end
 end
 %Merge the forbidden ranges
 for k=1:M
@@ -101,19 +87,6 @@ for k=1:M
             thetarange=(cell2mat(forbiddenRange(k,2*(l-1)+m)))';
             collisionRisks(k,2*(l-1)+m) = (theta(k)>=thetarange(1)) & (theta(k)<=thetarange(2));
             if collisionRisks(k,2*(l-1)+m)
-                %                     plotEverything(xStart,yStart,xPath,yPath,x_min, x_max, y_min, y_max,ObsList);
-                %                     y11=tan(thetamin)*(xtot-x)+y;
-                %                     plot(xtot,y11,'-');
-                %                     y12=tan(thetamax)*(xtot-x)+y;
-                %                     plot(xtot,y12,'-');
-                %                     if(abs(theta(k))<pi/2)
-                %                         xNode=x:0.1:x_max;
-                %                     else
-                %                         xNode=x_min:0.1:x;
-                %                     end
-                %                     dirNode=tan(theta(k))*(xNode-x)+y;
-                %                     plot(xNode,dirNode,'--')
-                %                     close
                 if(thetarange(2)<pi)
                     thetaUp=abs(thetarange(2)-theta(k));
                 else
@@ -135,7 +108,6 @@ for k=1:M
                         theta(k)=theta(k)+2*pi;
                     end
                 end
-                %close
             end
         end
     end

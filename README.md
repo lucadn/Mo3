@@ -9,4 +9,4 @@ The OMneT++ implementation includes the the Individual Mobility, Correlated Mobi
 
 When using this platform in scientific publications, please refer to the following work:
 
-L. De Nardis and M. G. Di Benedetto, "Mo3: a Modular Mobility Model for future generation mobile wireless networks," submitted to IEEE Access, 2022.
+L. De Nardis and M. G. Di Benedetto, "Mo3: a Modular Mobility Model for future generation mobile wireless networks," IEEE Access, 2022. DOI: 10.1109/ACCESS.2022.3161541

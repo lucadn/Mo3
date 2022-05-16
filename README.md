@@ -7,6 +7,6 @@ The Matlab implementation includes a main script to setup the model and a set of
 The OMneT++ implementation includes the the Individual Mobility, Correlated Mobility, Collision Avoidance and Upper Bound Enforcement Mo3 modules in the bidimensional case, as well as supporting functions to collect the simulation data.
 (c) Luca De Nardis, 2022
 
-When using this platform in scientific publications, please refer to the following work:
+When using this software in scientific publications, please refer to the following work:
 
-L. De Nardis and M. G. Di Benedetto, "Mo3: a Modular Mobility Model for future generation mobile wireless networks," IEEE Access, 2022. DOI: 10.1109/ACCESS.2022.3161541
+L. De Nardis and M. G. Di Benedetto, "Mo3: a Modular Mobility Model for future generation mobile wireless networks," IEEE Access, Volume 10, April 1, 2022, pp. 34085 - 34115. DOI: 10.1109/ACCESS.2022.3161541

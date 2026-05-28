@@ -1,0 +1,22 @@
+%Obstacle definition file used by the Obstacle Avoidance module of the 
+%Mo3D mobility simulation framework based on the Mo3 model as defined in:
+%L. De Nardis and M.-G. Di Benedetto, "Mo3: a Modular Mobility Model for
+%future generation mobile wireless networks", IEEE Access, Volume 10, April 1, 2022, pp. 34085 - 34115. DOI: 10.1109/ACCESS.2022.3161541
+%and extended in:
+%D. Ferretti, L. De Nardis and M.-G. Di Benedetto, "Mo3D - a Mobility Framework for Mobility Modeling in 3D Indoor Environments,"
+%submitted to Software X, 2026.
+%Syntax for parallelepiped "Obstacle" 1 <x_obs> <y_obs> <z_obs> <x_size> <y_size> <z_size>
+%Syntax for elliptic cylinder "Obstacle" 2 <x_obs> <y_obs> <z_obs> <h_semiaxis> <v_semiaxis> <z_size>
+%Smooth reflection on all surfaces (assuming an area 50x50x3 m3):
+%Obstacle 1 25 0.0005 1.5 50 0.001 3 
+%Obstacle 1 25 49.9995 1.5 50 0.001 3
+%Obstacle 1 0.0005 1.5 25 0.001 50 3
+%Obstacle 1 49.9995 25 1.5 0.001 50 3
+%Obstacle 1 25 25 0.0005 50 50 0.001
+%Obstacle 1 25 25 2.9995 50 50 0.001
+%Random obstacles (assuming an area 50x50x10 m3): 
+Obstacle 1 6 6 1 5 4 2
+Obstacle 1 10 10 1 5 5 1
+Obstacle 1 25 25 5 5 5 10
+Obstacle 1 35 12 8.5 4 5 3
+

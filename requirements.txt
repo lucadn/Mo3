@@ -1,0 +1,16 @@
+# Mo3D dependencies
+# Generated from static analysis of all import statements in the codebase
+# (mobility/mobility.py, mobility/node.py, mobility/mobilityUtils.py,
+#  utils/plot_data.py, utils/scenarioGeneration.py, utils/read_data.py,
+#  Mo3D_mobility_main.py)
+#
+# Versions below are pinned to those verified in the development/paper
+# environment (Python 3.10, originally managed via conda). Install with:
+#   pip install -r requirements.txt
+
+numpy==1.26.4
+pandas==2.3.3
+matplotlib==3.8.1
+PyYAML==6.0.3
+scipy==1.11.1
+plotly==6.8.0

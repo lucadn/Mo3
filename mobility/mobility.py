@@ -14,10 +14,10 @@ import numpy as np
 from pandas.core.frame import DataFrame
 import matplotlib.pyplot as plt
 
-from Mo3D.mobility.node import Node
+from mobility.node import Node
 from typing import List
 
-from Mo3D.utils.plot_data import plot_obstacle_avoidance
+from utils.plot_data import plot_obstacle_avoidance
 
 class Mobility:
     """
@@ -895,7 +895,7 @@ class Mobility:
                 minDistance
             except NameError:
                 print('Obstacle: index=', obsIndex,' xmin=', xmin,' xmax=',xmax,'ymin=', ymin,' ymax=',ymax,' zmin=',zmin,' zmax=',zmax,'. UE id: ',i,' Position: x=',self.x[i],' y=',self.y[i],' z=',self.z[i]);
-                breakpoint();            
+                breakpoint();           
     # Do something.
             detected[i] = minDistance<=self.d_OA_trigger;
             #if detected[i]:
@@ -953,7 +953,7 @@ class Mobility:
     #L. De Nardis and M.-G. Di Benedetto, "Mo3: a Modular Mobility model for
     #future generation mobile wireless networks", submitted to IEEE Access
 
-        minDistance = np.Inf*np.ones(self.nNodes);
+        minDistance = np.inf*np.ones(self.nNodes);
         detected=np.zeros(self.nNodes)
         xobs0=self.ObsList[obsIndex][1]
         yobs0=self.ObsList[obsIndex][2]

@@ -10,7 +10,9 @@
 
 """
 
-from Mo3D.mobility.node import Node
+from mobility.node import Node
+from utils.scenarioGeneration import Machine
+from typing import List
 import sys
 import math
 import re
@@ -88,7 +90,7 @@ def get_obstacles_from_layout(machine_array: List[Machine]):
     print('Obstacles extracted from layout,', numObstacles, 'obstacles found');
     return ObsList
     
-def distribute_nodes_outside_obstacles(distType, nodes: List[Node], obstacles: List, factory_length, factory_width, factory_height):
+def distribute_nodes_outside_obstacles(distType, nodes: List[Node], obstacles: List, factory_length, factory_width, factory_height, min_inter_node_distance=0.0):
 
     nAttempts=1000
     xmin=list()
@@ -98,17 +100,27 @@ def distribute_nodes_outside_obstacles(distType, nodes: List[Node], obstacles: L
     zmin=list()
     zmax=list()
     for obstacle in range(len(obstacles)):
-        xmin.append(obstacles[obstacle][1]-obstacles[obstacle][4]/2);
-        xmax.append(obstacles[obstacle][1]+obstacles[obstacle][4]/2);
-
-    for obstacle in range(len(obstacles)):
-        ymin.append(obstacles[obstacle][2]-obstacles[obstacle][5]/2);
-        ymax.append(obstacles[obstacle][2]+obstacles[obstacle][5]/2);
+        obs_type = obstacles[obstacle][0]
+        if obs_type == 1:
+            # Parallelepiped: obstacle[4]/[5] are full sizes (dx, dy) -> halve for half-width
+            x_half = obstacles[obstacle][4] / 2
+            y_half = obstacles[obstacle][5] / 2
+        elif obs_type == 2:
+            # Elliptic cylinder: obstacle[4]/[5] are already semi-axes (a, b) -> use as-is
+            x_half = obstacles[obstacle][4]
+            y_half = obstacles[obstacle][5]
+        else:
+            sys.exit('Unknown obstacle type in distribute_nodes_outside_obstacles')
+        xmin.append(obstacles[obstacle][1]-x_half);
+        xmax.append(obstacles[obstacle][1]+x_half);
+        ymin.append(obstacles[obstacle][2]-y_half);
+        ymax.append(obstacles[obstacle][2]+y_half);
 
     for obstacle in range(len(obstacles)):
         zmin.append(obstacles[obstacle][3]-obstacles[obstacle][6]/2);
         zmax.append(obstacles[obstacle][3]+obstacles[obstacle][6]/2);
 
+    placed_coords = []  # (x, y, z) of nodes already placed in this call
     for node in nodes:
         # Distribute UEs within the factory
         attempt=0
@@ -125,11 +137,21 @@ def distribute_nodes_outside_obstacles(distType, nodes: List[Node], obstacles: L
                         if ymin[obstacle] <= y_coord <= ymax[obstacle]:
                             if zmin[obstacle] <= z_coord <= zmax[obstacle]:
                                 node_inside = True
+                if node_inside is False and min_inter_node_distance > 0:
+                    # Also reject candidate positions closer than min_inter_node_distance
+                    # to any already-placed node, so the initial layout itself doesn't
+                    # start two nodes inside each other's collision-avoidance safety margin.
+                    for (px, py, pz) in placed_coords:
+                        d = math.sqrt((x_coord-px)**2 + (y_coord-py)**2 + (z_coord-pz)**2)
+                        if d < min_inter_node_distance:
+                            node_inside = True
+                            break
 
             else:
                 sys.exit('The node distribution statistics is not recognized')
         if node_inside is False: #A valid position fo the node was found
             node.set_coordinates(x_coord, y_coord, z_coord)
+            placed_coords.append((x_coord, y_coord, z_coord))
         else:
-            sys.exit('No valid position outside obstacles found for a node')
+            sys.exit('No valid position outside obstacles and away from other nodes found for a node')
 

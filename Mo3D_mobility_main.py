@@ -5,12 +5,12 @@
 #and extended in:
 #D. Ferretti, L. De Nardis and M.-G. Di Benedetto, "Mo3D - a Mobility Framework for Mobility Modeling in 3D Indoor Environments,"
 #submitted to Software X, 2026.
-from Mo3D.utils.read_data import read_params
-from Mo3D.utils.plot_data import plot_3d_layout
-from Mo3D.utils.scenarioGeneration import scenarioMachineDistribution, Machine
-from Mo3D.mobility.mobility import Mobility
-from Mo3D.mobility.mobilityUtils import instantiate_nodes, load_obstacles, distribute_nodes_outside_obstacles, save_obstacles, get_obstacles_from_layout
-
+from utils.read_data import read_params
+from utils.plot_data import plot_3d_layout
+from utils.scenarioGeneration import scenarioMachineDistribution, Machine
+from mobility.mobility import Mobility
+from mobility.mobilityUtils import instantiate_nodes, load_obstacles, distribute_nodes_outside_obstacles, save_obstacles, get_obstacles_from_layout
+from utils.generate_binding_matrix import generate_binding_matrix
 
 
 import os
@@ -22,9 +22,12 @@ from scipy import constants
 import copy as cp
 import random
 import plotly.express as px
+import time
 
 sys.path.append(os.path.dirname(os.getcwd()))
 sys.path.append(os.path.dirname(os.path.dirname(os.getcwd())))
+
+starting_time = time.time()
 
 # Constants
 c = constants.speed_of_light
@@ -59,8 +62,10 @@ if scenarioGeneration:
 else:
     #Load obstacles from file 
     obsList=load_obstacles(OLfilename);
-# Place nodes outside obstacles.
-distribute_nodes_outside_obstacles(nodeDistribution,nodeList, obsList, areaLength, areaWidth, areaHeight)
+# Place nodes outside obstacles and at least d_CA_min away from each other.
+distribute_nodes_outside_obstacles(nodeDistribution,nodeList, obsList, areaLength, areaWidth, areaHeight, min_inter_node_distance=inputs.get('mobility').get('d_CA_min'))
+# Generate binding matrix file based on read_params('Mo3D_params.yaml')
+generate_binding_matrix(inputs)
 
 #Start mobility engine
 m = Mobility(inputs, inputNNodes, areaLength, areaWidth, areaHeight, nodeList=nodeList, obstacleList=obsList)
@@ -71,7 +76,7 @@ m.generate_mobility_vectors()
 # ***********************************************************************
 
 print('******************************** Simulation starts ********************************')
-nMaxUpdates=100000
+nMaxUpdates=inputs.get('simulation').get('nMaxUpdates')
 nUpdates=1
 updatePercentagePeriod=10;
 for i in range(inputNNodes):
@@ -109,4 +114,4 @@ if m.pathSave==True:
     #fig = px.line_3d(x=m.xPath[:,0].reshape(nUpdates), y=m.yPath[:,0].reshape(nUpdates), z=m.zPath[:,0].reshape(nUpdates))
     #fig.show()
     plot_3d_layout(m)
-print('******************************** Simulation ends ********************************')
+print('******************************** Simulation ends, duration: ' + str(time.time()-starting_time) + ' s ********************************')

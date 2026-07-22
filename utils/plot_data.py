@@ -7,6 +7,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import math
+import os
 
 font_dict = {'label_size': 22,
              'ticks_size': 22,
@@ -98,38 +99,130 @@ def plot_curves(x_data, y_data, x_label, y_label, legends,
     return
 
 
-def plot_3d_layout(m):
+def plot_3d_layout(m, trajectory_path=None, layout_path=None):
+    if trajectory_path is None:
+        if os.path.isdir("/results") and os.access("/results", os.W_OK):
+            trajectory_path = "/results/trajectories.html"
+        else:
+            trajectory_path = os.path.join("results", "trajectories.html")
+
+    if layout_path is None:
+        if os.path.isdir("/results") and os.access("/results", os.W_OK):
+            layout_path = "/results/layout.html"
+        else:
+            layout_path = os.path.join(os.path.dirname(trajectory_path), "layout.html")
+
     import plotly.graph_objects as go
-    n_nodes=m.nNodes
-    area_layout = go.Figure()
+    n_nodes = m.nNodes
+
+    # This figure will hold ONLY the obstacles (used for both plots)
+    layout_only = go.Figure()
 
     # 3D mesh
     for obstacle in m.ObsList:
-        #machine_size = machine.get_machine_size()
-        xmin=obstacle[1]-obstacle[4]/2;
-        xmax=obstacle[1]+obstacle[4]/2;
-        ymin=obstacle[2]-obstacle[5]/2;
-        ymax=obstacle[2]+obstacle[5]/2;
-        zmin=obstacle[3]-obstacle[6]/2;
-        zmax=obstacle[3]+obstacle[6]/2;
-        x = [
-            xmin, xmax, xmax, xmin,
-            xmin, xmax, xmax, xmin
-        ]
-        y = [
-            ymin, ymin, ymax, ymax,
-            ymin, ymin, ymax, ymax
-        ]
-        z = [
-            zmin, zmin, zmin, zmin,
-            zmax, zmax, zmax, zmax
-        ]
+        obs_type = obstacle[0]
 
-        i = [0, 0, 0, 1, 1, 2, 3, 4, 4, 5, 6, 7]
-        j = [1, 2, 3, 2, 5, 3, 7, 5, 6, 6, 7, 4]
-        k = [4, 5, 6, 5, 6, 7, 4, 0, 1, 2, 3, 0]
+        if obs_type == 1:
+            # Parallelepiped obstacle: center (x,y,z), full sizes (dx,dy,dz)
+            xmin=obstacle[1]-obstacle[4]/2;
+            xmax=obstacle[1]+obstacle[4]/2;
+            ymin=obstacle[2]-obstacle[5]/2;
+            ymax=obstacle[2]+obstacle[5]/2;
+            zmin=obstacle[3]-obstacle[6]/2;
+            zmax=obstacle[3]+obstacle[6]/2;
+            x = [
+                xmin, xmax, xmax, xmin,
+                xmin, xmax, xmax, xmin
+            ]
+            y = [
+                ymin, ymin, ymax, ymax,
+                ymin, ymin, ymax, ymax
+            ]
+            z = [
+                zmin, zmin, zmin, zmin,
+                zmax, zmax, zmax, zmax
+            ]
 
-        area_layout.add_trace(go.Mesh3d(x=x,y=y,z=z, color='gray', opacity=1, i=i, j=j, k=k, name='Obstacle'))
+            i = [0, 0, 0, 1, 1, 2, 3, 4, 4, 5, 6, 7]
+            j = [1, 2, 3, 2, 5, 3, 7, 5, 6, 6, 7, 4]
+            k = [4, 5, 6, 5, 6, 7, 4, 0, 1, 2, 3, 0]
+
+            layout_only.add_trace(go.Mesh3d(x=x,y=y,z=z, color='gray', opacity=1, i=i, j=j, k=k, name='Obstacle'))
+
+        elif obs_type == 2:
+            # Elliptic cylinder obstacle: center (x,y,z), semi-axes (a,b), vertical extent dz
+            xobs0 = obstacle[1]
+            yobs0 = obstacle[2]
+            a = obstacle[4]
+            b = obstacle[5]
+            zmin = obstacle[3] - obstacle[6] / 2
+            zmax = obstacle[3] + obstacle[6] / 2
+
+            n_seg = 30
+            theta = np.linspace(0, 2 * np.pi, n_seg, endpoint=False)
+            x_ring = xobs0 + a * np.cos(theta)
+            y_ring = yobs0 + b * np.sin(theta)
+
+            # Vertices: bottom ring, top ring, bottom center, top center
+            x = np.concatenate([x_ring, x_ring, [xobs0], [xobs0]])
+            y = np.concatenate([y_ring, y_ring, [yobs0], [yobs0]])
+            z = np.concatenate([np.full(n_seg, zmin), np.full(n_seg, zmax), [zmin], [zmax]])
+
+            bottom_center = 2 * n_seg
+            top_center = 2 * n_seg + 1
+
+            i_faces, j_faces, k_faces = [], [], []
+            for s in range(n_seg):
+                s_next = (s + 1) % n_seg
+                # Side wall: two triangles per segment
+                i_faces += [s, s]
+                j_faces += [s_next, n_seg + s_next]
+                k_faces += [n_seg + s_next, n_seg + s]
+                # Bottom cap (fan from bottom_center)
+                i_faces.append(bottom_center)
+                j_faces.append(s)
+                k_faces.append(s_next)
+                # Top cap (fan from top_center)
+                i_faces.append(top_center)
+                j_faces.append(n_seg + s_next)
+                k_faces.append(n_seg + s)
+
+            layout_only.add_trace(go.Mesh3d(x=x, y=y, z=z, color='gray', opacity=1,
+                                             i=i_faces, j=j_faces, k=k_faces, name='Obstacle'))
+
+        else:
+            print(f"Warning: unknown obstacle type {obs_type}, skipping in plot")
+            continue
+
+    # Shared layout/scene settings, computed once and reused for both figures
+    layout_length = m.x_max - m.x_min
+    layout_width = m.y_max - m.y_min
+    layout_height = m.z_max - m.z_min
+    scene_kwargs = dict(
+        scene=dict(
+            xaxis=dict(range=[m.x_min, m.x_max]),
+            yaxis=dict(range=[m.y_min, m.y_max]),
+            zaxis=dict(range=[m.z_min, m.z_max]),
+            aspectmode='manual',
+            aspectratio=dict(
+                x=layout_length / max(layout_length, layout_width, layout_height),
+                y=layout_width / max(layout_length, layout_width, layout_height),
+                z=layout_height / max(layout_length, layout_width, layout_height)
+            )
+        ),
+        showlegend=True
+    )
+
+    # Apply layout settings to the obstacles-only figure and save it
+    layout_only.update_layout(title='3D Area Layout', **scene_kwargs)
+
+    if layout_path is not None:
+        os.makedirs(os.path.dirname(layout_path), exist_ok=True)
+        layout_only.write_html(layout_path)
+        print(f"3D layout plot saved to {layout_path}")
+
+    # Build the full figure (obstacles + trajectories) by copying the obstacle traces
+    area_layout = go.Figure(data=layout_only.data)
 
     # UAV trajectories
     colors = ['green', 'blue', 'red', 'purple']  # colori tr
@@ -144,40 +237,14 @@ def plot_3d_layout(m):
             , name=f'UAV {i + 1} Start'
         ))
 
-    # # Imposta i limiti degli assi su traiettorie
-    # Limiti traiettorie
-    # x_min = m.xPath.min()
-    # x_max = m.xPath.max()
-    # y_min = m.yPath.min()
-    # y_max = m.yPath.max()
-    # z_min = m.zPath.min()
-    # z_max = m.zPath.max()
-    # margin = 1
-    # factory_layout.update_layout(
-    #     scene=dict(xaxis=dict(range=[x_min - margin, x_max + margin]), yaxis=dict(range=[y_min - margin, y_max + margin]), zaxis=dict(range=[0, factory_height]),
-    #         ), title='3D Factory Layout with UAV Trajectories', showlegend=True)
-    
-    # # Imposta i limiti degli assi su factory dimension
-    layout_length=m.x_max-m.x_min;
-    layout_width=m.y_max-m.y_min;
-    layout_height=m.z_max-m.z_min;
-    area_layout.update_layout(
-        scene=dict(
-        xaxis=dict(range=[m.x_min, m.x_max]),
-        yaxis=dict(range=[m.y_min, m.y_max]),
-        zaxis=dict(range=[m.z_min, m.z_max]),
-        aspectmode='manual',
-        aspectratio=dict(
-            x=layout_length / max(layout_length, layout_width, layout_height),
-            y=layout_width / max(layout_length, layout_width, layout_height),
-            z=layout_height / max(layout_length, layout_width, layout_height)
-        )
-    ),
-    title='3D Area Layout with UAV Trajectories',
-    showlegend=True
-    )
+    area_layout.update_layout(title='3D Area Layout with UAV Trajectories', **scene_kwargs)
 
-    area_layout.show()
+    if trajectory_path is not None:
+        os.makedirs(os.path.dirname(trajectory_path), exist_ok=True)
+        area_layout.write_html(trajectory_path)
+        print(f"3D trajectory plot saved to {trajectory_path}")
+    else:
+        area_layout.show()
 
 def plot_obstacle_avoidance(k, x, y, prev_theta, theta, forbiddenRange, mergedforbiddenRange):
     # Plot visualization of adjustments

@@ -8,29 +8,30 @@
 scenario:
     # To select a scenario, please choose among the following blocks:
 
-    #Bi-rex:
+    #Put this to true to generate automatically a scenario with the desired machine spacing and machine size.    
+    #Put this to false to fix scenarios based on Obstacle_List ("Mo3D_ObstacleList_BiRex.txt" or "Mo3D_ObstacleList.txt")
+    scenarioGeneration: false
+    machine_size: 3
+    inter_machine_distance: 5
+
+    #Bi-rex: length-width-height of factory
     #length: 16
     #width: 33
     #height: 6
     #OLfilename: "Mo3D_ObstacleList_BiRex.txt"
 
-    #Custom:
+    #Custom: length-width-height of factory
     OLfilename: "Mo3D_ObstacleList.txt"
     length: 50
     width: 50
     height: 10
-    
-    #Put this to true to generate automatically a scenario with the desired machine spacing and machine size.    
-    scenarioGeneration: true
-    machine_size: 3
-    inter_machine_distance: 5
 
 node:
     node_spatial_distribution: "Uniform"
-    number_of_nodes : 4 #Total number of nodes. IMPORTANT: this value must match the size of the matrixes provided in the Binding Matrix file.
+    # Total number of nodes. IMPORTANT: this value generates automatically the Binding Matrix file, following the binding_matrix params.
+    number_of_nodes : 4
 
 mobility:
-
     #General mobility configuration
     pathSave: true
     tridimMobility: true
@@ -53,7 +54,35 @@ mobility:
     BMfilename: "Mo3D_BindingMatrix.txt"
     Dc: 1               # Threshold for connectivity with nodes in the binding set
     rho_min: 1          # Threshold for grouping factor
-    groupingStrategy: 2 #1: centroid of group mates; 2: closest mate not in the connected set
+    groupingStrategy: 2 # 1: centroid of group mates; 2: closest mate not in the connected set
+
+    binding_matrix:
+      # To select how the binding matrix is provided, please choose one of the following:
+    
+      # Put this to true to automatically generate the binding matrix, and its time-varying
+      # switches, from the "switches" sequence described below.
+      # Put this to false to instead read a manually-authored binding matrix file (see
+      # BMfilename), following the syntax described in the README/paper: an N x N matrix per
+      # node, and optional "nextSwitch <t>" lines to change the matrix over time.
+      auto_generate: True
+      switches:
+      # Each entry defines:
+      #   - type: the binding matrix to generate for that interval:
+      #       "all_together" -> every node is bound to every other node (all entries set to 1)
+      #       "independent"  -> no node is bound to any other node (identity matrix, i.e. all off-diagonal entries set to 0)
+      #   - nextSwitch: the simulation time, in seconds, at which the NEXT entry in this list
+      #     becomes effective. Omit nextSwitch on the last entry: that configuration then remains in force for the rest of the simulation.
+        - type: all_together
+          nextSwitch: 4
+        - type: independent
+          nextSwitch: 6
+        - type: all_together
+          nextSwitch: 8
+        - type: independent
+          nextSwitch: 10
+        - type: all_together
+          nextSwitch: 50
+        - type: independent
 
     #Collision Avoidance module input parameters
     T_CA: *dt
@@ -75,9 +104,13 @@ mobility:
     obstacleAvoidanceFlag: true
     upperBoundsEnforcementFlag: true
 
-
-
 # High-Level simulation parameters
-#simulation:
-#    tot_simulation_time_s: 0.01
+simulation:
+    # Total number of mobility update steps to run. Each step corresponds to one call to
+    # update_mobility_vectors (spaced mobility_update_period seconds apart), so the total
+    # simulated time is approximately nMaxUpdates * mobility_update_period seconds.
+    # Note: the main loop runs for nMaxUpdates-1 update steps (range(0, nMaxUpdates-1)),
+    # and may end earlier still if the simulation's end condition (m.endSim) is reached
+    # first, e.g. if the binding-matrix switch sequence or the obstacle list is exhausted.
+   nMaxUpdates: 100000
 
